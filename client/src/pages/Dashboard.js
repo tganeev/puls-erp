@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
+import Sidebar from '../components/Sidebar';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -37,8 +38,26 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        Загрузка дашборда...
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        background: 'var(--background)'
+      }}>
+        <div style={{
+          width: '48px',
+          height: '48px',
+          border: '3px solid var(--primary)',
+          borderTopColor: 'var(--accent)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }} />
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
@@ -46,157 +65,344 @@ const Dashboard = () => {
   const stats = dashboardData?.stats || {};
   const tasks = dashboardData?.tasks || [];
   const chart = dashboardData?.chart;
+  const recentActivities = dashboardData?.recentActivities || [];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Sidebar */}
-      <aside style={{
-        width: '260px',
-        background: 'white',
-        borderRight: '1px solid #e5e7eb',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 10
-      }}>
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid #e5e7eb' }}>
-          <h2 style={{ color: '#0F2B4D' }}>⚡ Пульс ERP</h2>
-        </div>
-        <nav style={{ padding: '20px 16px' }}>
-          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '14px', textDecoration: 'none', color: '#FF6B00', background: '#fff7ed', marginBottom: '6px' }}>
-            <span>📊</span> Дашборд
-          </a>
-          <a href="/objects" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '14px', textDecoration: 'none', color: '#4b5563', marginBottom: '6px' }}>
-            <span>🏗️</span> Объекты
-          </a>
-        </nav>
-      </aside>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
+      <Sidebar activePage="dashboard" />
       
-      {/* Main content */}
       <main style={{
         flex: 1,
-        marginLeft: '260px',
-        padding: '24px 32px',
-        background: '#F8F9FA'
+        marginLeft: '280px',
+        padding: '32px 40px',
+        minHeight: '100vh'
       }}>
-        <header style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '32px'
-        }}>
-          <h1 style={{ fontSize: '28px', color: '#0F2B4D' }}>Дашборд {roleNames[user?.role] || user?.role}</h1>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span>{user?.name}</span>
-            <img src={user?.avatar} alt="avatar" style={{ width: '44px', height: '44px', borderRadius: '50%' }} />
-          </div>
-        </header>
-        
-        {/* Stats Cards */}
+        {/* Header */}
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{
+            fontSize: '32px',
+            fontWeight: '700',
+            color: 'var(--primary)',
+            marginBottom: '8px',
+            fontFamily: 'Inter, sans-serif'
+          }}>
+            Добро пожаловать, {user?.name?.split(' ')[0]} 👋
+          </h1>
+          <p style={{
+            fontSize: '15px',
+            color: 'var(--secondary)',
+            lineHeight: '1.5'
+          }}>
+            Вот что происходит с вашими проектами сегодня
+          </p>
+        </div>
+
+        {/* Stats Cards with modern design */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '20px',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '24px',
           marginBottom: '32px'
         }}>
-          {user?.role === 'PROJECT_MANAGER' && (
-            <>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>🏗️</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>{stats.activeObjects || 3}</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Активные объекты</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>🚚</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>{stats.materialsInTransit || 125.5} т</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Материалы в пути</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>📊</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>{stats.monthProgress || 68}%</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Выполнение плана</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>⏳</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>{stats.pendingApprovals || 4}</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Ожидают согласования</div></div>
-              </div>
-            </>
-          )}
-          {user?.role === 'DIRECTOR' && (
-            <>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>🏗️</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>7</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Всего проектов</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>⚡</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>4</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Активные</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>💰</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>325 млн ₽</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Бюджет</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>📈</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>18.5%</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Рентабельность</div></div>
-              </div>
-            </>
-          )}
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+            border: '1px solid rgba(0,0,0,0.03)',
+            transition: 'all 0.3s ease',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '100px',
+              height: '100px',
+              background: 'radial-gradient(circle, rgba(255,107,0,0.05) 0%, transparent 70%)'
+            }} />
+            <div style={{ fontSize: '42px', marginBottom: '12px' }}>🏗️</div>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--primary)', marginBottom: '4px' }}>
+              {stats.activeObjects || 3}
+            </div>
+            <div style={{ fontSize: '14px', color: 'var(--secondary)' }}>Активных объектов</div>
+            <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--success)' }}>↑ 12% с прошлого месяца</div>
+          </div>
+
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+            border: '1px solid rgba(0,0,0,0.03)',
+            transition: 'all 0.3s ease',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '100px',
+              height: '100px',
+              background: 'radial-gradient(circle, rgba(255,107,0,0.05) 0%, transparent 70%)'
+            }} />
+            <div style={{ fontSize: '42px', marginBottom: '12px' }}>📊</div>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--primary)', marginBottom: '4px' }}>
+              {stats.monthProgress || 68}%
+            </div>
+            <div style={{ fontSize: '14px', color: 'var(--secondary)' }}>Выполнение плана</div>
+            <div style={{ marginTop: '12px', height: '6px', background: '#e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
+              <div style={{ width: `${stats.monthProgress || 68}%`, height: '100%', background: 'var(--accent)', borderRadius: '10px' }} />
+            </div>
+          </div>
+
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)',
+            border: '1px solid rgba(0,0,0,0.03)',
+            transition: 'all 0.3s ease',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              width: '100px',
+              height: '100px',
+              background: 'radial-gradient(circle, rgba(255,107,0,0.05) 0%, transparent 70%)'
+            }} />
+            <div style={{ fontSize: '42px', marginBottom: '12px' }}>⏳</div>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--primary)', marginBottom: '4px' }}>
+              {stats.pendingApprovals || 4}
+            </div>
+            <div style={{ fontSize: '14px', color: 'var(--secondary)' }}>Ожидают согласования</div>
+            <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--warning)' }}>Требуют внимания</div>
+          </div>
+
+          <div style={{
+            background: 'linear-gradient(135deg, var(--primary) 0%, #1a3a5c 100%)',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: 'var(--shadow-md)',
+            transition: 'all 0.3s ease',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: -20,
+              right: -20,
+              width: '120px',
+              height: '120px',
+              background: 'radial-gradient(circle, rgba(255,107,0,0.15) 0%, transparent 70%)',
+              borderRadius: '50%'
+            }} />
+            <div style={{ fontSize: '42px', marginBottom: '12px' }}>🤖</div>
+            <div style={{ fontSize: '18px', fontWeight: '600', color: 'white', marginBottom: '8px' }}>
+              ИИ-аналитика
+            </div>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', lineHeight: '1.4' }}>
+              Анализ завершён. Рекомендации готовы.
+            </div>
+            <button style={{
+              marginTop: '16px',
+              padding: '8px 16px',
+              background: 'rgba(255,255,255,0.1)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '12px',
+              color: 'white',
+              fontSize: '12px',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}>
+              Открыть аналитику →
+            </button>
+          </div>
         </div>
-        
-        {/* Tasks Table */}
-        <div style={{ background: 'white', borderRadius: '14px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)', marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '18px', marginBottom: '20px', color: '#0F2B4D' }}>Активные задачи</h2>
-          {tasks.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#6C757D' }}>Нет активных задач</div>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#f9fafb' }}>
-                  <th style={{ padding: '12px', textAlign: 'left' }}>Задача</th>
-                  <th style={{ padding: '12px', textAlign: 'left' }}>Срок</th>
-                  <th style={{ padding: '12px', textAlign: 'left' }}>Статус</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tasks.map(task => (
-                  <tr key={task.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                    <td style={{ padding: '12px' }}>{task.title}</td>
-                    <td style={{ padding: '12px' }}>{task.deadline || '—'}</td>
-                    <td style={{ padding: '12px' }}>
+
+        {/* Two column layout */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 1fr',
+          gap: '24px',
+          marginBottom: '32px'
+        }}>
+          {/* Tasks Section */}
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--primary)' }}>Активные задачи</h2>
+              <button style={{
+                fontSize: '13px',
+                color: 'var(--accent)',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer'
+              }}>
+                Все задачи →
+              </button>
+            </div>
+            {tasks.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center', color: 'var(--secondary)' }}>
+                ✨ Нет активных задач
+              </div>
+            ) : (
+              <div>
+                {tasks.map((task, idx) => (
+                  <div key={task.id} style={{
+                    padding: '16px',
+                    borderBottom: idx === tasks.length - 1 ? 'none' : '1px solid rgba(108, 117, 125, 0.1)',
+                    transition: 'all 0.2s'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                      <div style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        background: task.priority === 'high' ? 'var(--danger)' : task.priority === 'medium' ? 'var(--warning)' : 'var(--success)'
+                      }} />
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--primary)', flex: 1 }}>{task.title}</span>
                       <span style={{
+                        fontSize: '11px',
                         padding: '4px 10px',
                         borderRadius: '20px',
-                        fontSize: '12px',
-                        background: task.priority === 'high' ? '#fed7aa' : '#dbeafe',
-                        color: task.priority === 'high' ? '#92400e' : '#1e40af'
+                        background: task.status === 'pending' ? 'rgba(255, 193, 7, 0.1)' : 'rgba(45, 198, 83, 0.1)',
+                        color: task.status === 'pending' ? 'var(--warning)' : 'var(--success)'
                       }}>
-                        {task.status === 'pending' ? 'Ожидает' : 'В работе'}
+                        {task.status === 'pending' ? 'В ожидании' : 'В работе'}
                       </span>
-                    </td>
-                  </tr>
+                    </div>
+                    {task.deadline && (
+                      <div style={{ fontSize: '11px', color: 'var(--secondary)', marginLeft: '20px' }}>
+                        📅 Срок: {task.deadline}
+                      </div>
+                    )}
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            )}
+          </div>
+
+          {/* Chart Section */}
+          {chart && (
+            <div style={{
+              background: 'white',
+              borderRadius: '16px',
+              padding: '24px',
+              boxShadow: 'var(--shadow-sm)'
+            }}>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--primary)', marginBottom: '20px' }}>
+                Выполнение плана работ
+              </h2>
+              <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', height: '220px' }}>
+                {chart.labels.map((label, idx) => (
+                  <div key={idx} style={{ textAlign: 'center', flex: 1 }}>
+                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', alignItems: 'flex-end', height: '160px' }}>
+                      <div style={{
+                        width: '28px',
+                        background: 'var(--primary)',
+                        height: `${chart.plan[idx]}%`,
+                        borderRadius: '8px 8px 4px 4px',
+                        transition: 'height 0.5s ease'
+                      }}>
+                        <div style={{
+                          textAlign: 'center',
+                          fontSize: '10px',
+                          color: 'white',
+                          marginTop: '-18px'
+                        }}>
+                          {chart.plan[idx]}%
+                        </div>
+                      </div>
+                      <div style={{
+                        width: '28px',
+                        background: 'var(--accent)',
+                        height: `${chart.fact[idx]}%`,
+                        borderRadius: '8px 8px 4px 4px',
+                        transition: 'height 0.5s ease'
+                      }}>
+                        <div style={{
+                          textAlign: 'center',
+                          fontSize: '10px',
+                          color: 'white',
+                          marginTop: '-18px'
+                        }}>
+                          {chart.fact[idx]}%
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '12px', fontSize: '12px', color: 'var(--secondary)' }}>{label}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(108, 117, 125, 0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '12px', height: '12px', background: 'var(--primary)', borderRadius: '3px' }} />
+                  <span style={{ fontSize: '12px', color: 'var(--secondary)' }}>План</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '12px', height: '12px', background: 'var(--accent)', borderRadius: '3px' }} />
+                  <span style={{ fontSize: '12px', color: 'var(--secondary)' }}>Факт</span>
+                </div>
+              </div>
+            </div>
           )}
         </div>
-        
-        {/* Chart */}
-        {chart && (
-          <div style={{ background: 'white', borderRadius: '14px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-            <h2 style={{ fontSize: '18px', marginBottom: '20px', color: '#0F2B4D' }}>Выполнение плана работ</h2>
-            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', height: '200px' }}>
-              {chart.labels.map((label, idx) => (
-                <div key={idx} style={{ textAlign: 'center', flex: 1 }}>
-                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', alignItems: 'flex-end', height: '150px' }}>
-                    <div style={{ width: '30px', background: '#0F2B4D', height: `${chart.plan[idx]}%`, borderRadius: '4px' }}></div>
-                    <div style={{ width: '30px', background: '#FF6B00', height: `${chart.fact[idx]}%`, borderRadius: '4px' }}></div>
+
+        {/* Recent Activity */}
+        {recentActivities.length > 0 && (
+          <div style={{
+            background: 'white',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: 'var(--shadow-sm)'
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '600', color: 'var(--primary)', marginBottom: '20px' }}>
+              Последние действия
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {recentActivities.map((activity, idx) => (
+                <div key={activity.id} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  padding: '12px',
+                  background: 'rgba(248, 249, 250, 0.5)',
+                  borderRadius: '12px',
+                  transition: 'all 0.2s'
+                }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    background: 'rgba(255, 107, 0, 0.1)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '18px'
+                  }}>
+                    👤
                   </div>
-                  <div style={{ marginTop: '12px', fontSize: '12px' }}>{label}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '13px', color: 'var(--primary)' }}>
+                      <strong>{activity.user}</strong> {activity.action}
+                    </div>
+                    <div style={{ fontSize: '11px', color: 'var(--secondary)', marginTop: '2px' }}>
+                      {activity.object} • {activity.time}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--accent)' }}>→</div>
                 </div>
               ))}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '16px', height: '16px', background: '#0F2B4D' }}></div>План</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '16px', height: '16px', background: '#FF6B00' }}></div>Факт</div>
             </div>
           </div>
         )}

@@ -1,360 +1,208 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+import Sidebar from '../components/Sidebar';
 
 const API_URL = 'http://localhost:5000/api';
 
-const Dashboard = () => {
-  const { user, logout } = useAuth();
-  const [dashboardData, setDashboardData] = useState(null);
+const ObjectsList = () => {
+  const { user } = useAuth();
+  const [objects, setObjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
-    const fetchDashboard = async () => {
+    const fetchObjects = async () => {
       try {
-        const response = await axios.get(`${API_URL}/dashboard/${user?.role}`);
-        setDashboardData(response.data);
+        const response = await axios.get(`${API_URL}/objects`);
+        setObjects(response.data);
       } catch (error) {
-        console.error('Error fetching dashboard:', error);
+        console.error('Error fetching objects:', error);
       } finally {
         setLoading(false);
       }
     };
-    
-    if (user) {
-      fetchDashboard();
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
+    fetchObjects();
+  }, []);
 
-  const roleNames = {
-    PROJECT_MANAGER: 'Прораб',
-    PTO_ENGINEER: 'Инженер ПТО',
-    SUPPLY_ENGINEER: 'Снабженец',
-    DIRECTOR: 'Руководитель'
-  };
-
-  const handleLogout = () => {
-    logout();
-    window.location.href = '/login';
-  };
-
-  const handleSwitchUser = () => {
-    logout();
-    window.location.href = '/login';
+  const getStatusStyle = (status) => {
+    const styles = {
+      IN_PROGRESS: { bg: 'rgba(45, 198, 83, 0.1)', color: 'var(--success)', text: 'В работе' },
+      PLANNING: { bg: 'rgba(255, 193, 7, 0.1)', color: 'var(--warning)', text: 'Планирование' },
+      COMPLETED: { bg: 'rgba(108, 117, 125, 0.1)', color: 'var(--secondary)', text: 'Завершён' }
+    };
+    return styles[status] || styles.PLANNING;
   };
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        Загрузка дашборда...
+      <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
+        <Sidebar activePage="objects" />
+        <main style={{ flex: 1, marginLeft: '280px', padding: '32px 40px' }}>
+          <div style={{ textAlign: 'center', padding: '60px' }}>Загрузка...</div>
+        </main>
       </div>
     );
   }
 
-  const stats = dashboardData?.stats || {};
-  const tasks = dashboardData?.tasks || [];
-  const chart = dashboardData?.chart;
-
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Sidebar */}
-      <aside style={{
-        width: '260px',
-        background: 'white',
-        borderRight: '1px solid #e5e7eb',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        bottom: 0,
-        zIndex: 10,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid #e5e7eb' }}>
-          <h2 style={{ color: '#0F2B4D', margin: 0 }}>⚡ Пульс ERP</h2>
-        </div>
-        
-        <nav style={{ flex: 1, padding: '20px 16px' }}>
-          <a href="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '14px', textDecoration: 'none', color: '#FF6B00', background: '#fff7ed', marginBottom: '6px' }}>
-            <span>📊</span> Дашборд
-          </a>
-          <a href="/objects" style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '14px', textDecoration: 'none', color: '#4b5563', marginBottom: '6px' }}>
-            <span>🏗️</span> Объекты
-          </a>
-        </nav>
-        
-        {/* Кнопки выхода в сайдбаре */}
-        <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb' }}>
-          <button
-            onClick={handleSwitchUser}
-            style={{
-              width: '100%',
-              padding: '10px 16px',
-              background: '#f3f4f6',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: '#0F2B4D',
-              cursor: 'pointer',
-              marginBottom: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              justifyContent: 'center'
-            }}
-          >
-            🔄 Сменить пользователя
-          </button>
-          
-          <button
-            onClick={handleLogout}
-            style={{
-              width: '100%',
-              padding: '10px 16px',
-              background: '#fee2e2',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: '#E63946',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              justifyContent: 'center'
-            }}
-          >
-            🚪 Выйти из системы
-          </button>
-        </div>
-      </aside>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--background)' }}>
+      <Sidebar activePage="objects" />
       
-      {/* Main content */}
       <main style={{
         flex: 1,
-        marginLeft: '260px',
-        padding: '24px 32px',
-        background: '#F8F9FA'
+        marginLeft: '280px',
+        padding: '32px 40px'
       }}>
-        <header style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '32px',
-          flexWrap: 'wrap',
-          gap: '16px'
-        }}>
-          <h1 style={{ fontSize: '28px', color: '#0F2B4D', margin: 0 }}>Дашборд {roleNames[user?.role] || user?.role}</h1>
-          
-          {/* User menu */}
-          <div style={{ position: 'relative' }}>
-            <div 
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                cursor: 'pointer',
-                padding: '8px 16px',
-                borderRadius: '30px',
-                background: 'white',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-              }}
-            >
-              <img 
-                src={user?.avatar} 
-                alt="avatar" 
-                style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} 
-              />
-              <div>
-                <div style={{ fontSize: '14px', fontWeight: '600', color: '#0F2B4D' }}>{user?.name}</div>
-                <div style={{ fontSize: '11px', color: '#6C757D' }}>{roleNames[user?.role] || user?.role}</div>
-              </div>
-              <span style={{ fontSize: '12px', color: '#6C757D' }}>{showUserMenu ? '▲' : '▼'}</span>
-            </div>
-            
-            {/* Dropdown menu */}
-            {showUserMenu && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '8px',
-                background: 'white',
-                borderRadius: '14px',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                minWidth: '220px',
-                zIndex: 1000,
-                overflow: 'hidden'
-              }}>
-                <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
-                  <div style={{ fontSize: '12px', color: '#6C757D' }}>Вы вошли как</div>
-                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#0F2B4D' }}>{user?.email}</div>
-                </div>
-                
-                <button
-                  onClick={handleSwitchUser}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'transparent',
-                    border: 'none',
-                    textAlign: 'left',
-                    fontSize: '14px',
-                    color: '#0F2B4D',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    transition: 'background 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#f3f4f6'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                >
-                  <span>🔄</span> Сменить пользователя
-                </button>
-                
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'transparent',
-                    border: 'none',
-                    textAlign: 'left',
-                    fontSize: '14px',
-                    color: '#E63946',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    borderTop: '1px solid #e5e7eb',
-                    transition: 'background 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.background = '#fee2e2'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                >
-                  <span>🚪</span> Выйти из системы
-                </button>
-              </div>
-            )}
-          </div>
-        </header>
-        
-        {/* Stats Cards */}
+        <div style={{ marginBottom: '32px' }}>
+          <h1 style={{
+            fontSize: '32px',
+            fontWeight: '700',
+            color: 'var(--primary)',
+            marginBottom: '8px'
+          }}>
+            Объекты строительства
+          </h1>
+          <p style={{ fontSize: '15px', color: 'var(--secondary)' }}>
+            Управляйте всеми строительными проектами в одном месте
+          </p>
+        </div>
+
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '20px',
-          marginBottom: '32px'
+          gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+          gap: '24px'
         }}>
-          {user?.role === 'PROJECT_MANAGER' && (
-            <>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>🏗️</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>{stats.activeObjects || 3}</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Активные объекты</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>🚚</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>{stats.materialsInTransit || 125.5} т</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Материалы в пути</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>📊</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>{stats.monthProgress || 68}%</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Выполнение плана</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>⏳</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>{stats.pendingApprovals || 4}</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Ожидают согласования</div></div>
-              </div>
-            </>
-          )}
-          {user?.role === 'DIRECTOR' && (
-            <>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>🏗️</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>7</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Всего проектов</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>⚡</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>4</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Активные</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>💰</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>325 млн ₽</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Бюджет</div></div>
-              </div>
-              <div style={{ background: 'white', borderRadius: '14px', padding: '20px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-                <span style={{ fontSize: '32px' }}>📈</span>
-                <div><div style={{ fontSize: '28px', fontWeight: 'bold', color: '#0F2B4D' }}>18.5%</div><div style={{ fontSize: '14px', color: '#6C757D' }}>Рентабельность</div></div>
-              </div>
-            </>
-          )}
-        </div>
-        
-        {/* Tasks Table */}
-        <div style={{ background: 'white', borderRadius: '14px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)', marginBottom: '32px' }}>
-          <h2 style={{ fontSize: '18px', marginBottom: '20px', color: '#0F2B4D' }}>Активные задачи</h2>
-          {tasks.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#6C757D' }}>Нет активных задач</div>
-          ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr style={{ background: '#f9fafb' }}>
-                  <th style={{ padding: '12px', textAlign: 'left' }}>Задача</th>
-                  <th style={{ padding: '12px', textAlign: 'left' }}>Срок</th>
-                  <th style={{ padding: '12px', textAlign: 'left' }}>Статус</th>
-                 </tr>
-              </thead>
-              <tbody>
-                {tasks.map(task => (
-                  <tr key={task.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                    <td style={{ padding: '12px' }}>{task.title}</td>
-                    <td style={{ padding: '12px' }}>{task.deadline || '—'}</td>
-                    <td style={{ padding: '12px' }}>
-                      <span style={{
-                        padding: '4px 10px',
-                        borderRadius: '20px',
-                        fontSize: '12px',
-                        background: task.priority === 'high' ? '#fed7aa' : '#dbeafe',
-                        color: task.priority === 'high' ? '#92400e' : '#1e40af'
-                      }}>
-                        {task.status === 'pending' ? 'Ожидает' : 'В работе'}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-        
-        {/* Chart */}
-        {chart && (
-          <div style={{ background: 'white', borderRadius: '14px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.07)' }}>
-            <h2 style={{ fontSize: '18px', marginBottom: '20px', color: '#0F2B4D' }}>Выполнение плана работ</h2>
-            <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end', height: '200px' }}>
-              {chart.labels.map((label, idx) => (
-                <div key={idx} style={{ textAlign: 'center', flex: 1 }}>
-                  <div style={{ display: 'flex', gap: '4px', justifyContent: 'center', alignItems: 'flex-end', height: '150px' }}>
-                    <div style={{ width: '30px', background: '#0F2B4D', height: `${chart.plan[idx]}%`, borderRadius: '4px' }}></div>
-                    <div style={{ width: '30px', background: '#FF6B00', height: `${chart.fact[idx]}%`, borderRadius: '4px' }}></div>
+          {objects.map((object) => {
+            const status = getStatusStyle(object.status);
+            return (
+              <Link
+                key={object.id}
+                to={`/objects/${object.id}`}
+                style={{
+                  background: 'white',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  textDecoration: 'none',
+                  transition: 'all 0.3s ease',
+                  boxShadow: 'var(--shadow-sm)',
+                  border: '1px solid rgba(0,0,0,0.03)',
+                  display: 'block'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-md)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-sm)';
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                  <div>
+                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏗️</div>
+                    <h3 style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: 'var(--primary)',
+                      margin: 0
+                    }}>
+                      {object.name}
+                    </h3>
                   </div>
-                  <div style={{ marginTop: '12px', fontSize: '12px' }}>{label}</div>
+                  <span style={{
+                    padding: '4px 12px',
+                    borderRadius: '20px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    background: status.bg,
+                    color: status.color
+                  }}>
+                    {status.text}
+                  </span>
                 </div>
-              ))}
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '16px', height: '16px', background: '#0F2B4D' }}></div>План</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><div style={{ width: '16px', height: '16px', background: '#FF6B00' }}></div>Факт</div>
-            </div>
-          </div>
-        )}
+
+                <p style={{
+                  fontSize: '13px',
+                  color: 'var(--secondary)',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  📍 {object.address}
+                </p>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '12px',
+                  marginBottom: '16px',
+                  padding: '12px 0',
+                  borderTop: '1px solid rgba(108, 117, 125, 0.1)',
+                  borderBottom: '1px solid rgba(108, 117, 125, 0.1)'
+                }}>
+                  <div>
+                    <div style={{ fontSize: '10px', color: 'var(--secondary)', marginBottom: '2px' }}>ЗАКАЗЧИК</div>
+                    <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--primary)' }}>
+                      {object.customer?.length > 20 ? object.customer.slice(0, 20) + '...' : object.customer}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '10px', color: 'var(--secondary)', marginBottom: '2px' }}>БЮДЖЕТ</div>
+                    <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--primary)' }}>
+                      {(object.budget / 1000000).toFixed(1)} млн ₽
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '10px', color: 'var(--secondary)', marginBottom: '2px' }}>РУКОВОДИТЕЛЬ</div>
+                    <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--primary)' }}>
+                      {object.manager?.split(' ')[0]}
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '10px', color: 'var(--secondary)', marginBottom: '2px' }}>СРОК</div>
+                    <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--primary)' }}>
+                      {object.endDate?.slice(5)}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '12px', color: 'var(--secondary)' }}>Выполнение</span>
+                    <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--accent)' }}>{object.progress}%</span>
+                  </div>
+                  <div style={{ height: '6px', background: '#e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${object.progress}%`,
+                      height: '100%',
+                      background: 'linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%)',
+                      borderRadius: '10px',
+                      transition: 'width 0.3s ease'
+                    }} />
+                  </div>
+                </div>
+
+                <div style={{
+                  marginTop: '16px',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: 'var(--accent)',
+                  fontSize: '13px',
+                  fontWeight: '500'
+                }}>
+                  Подробнее →
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </main>
     </div>
   );
 };
 
-export default Dashboard;
+export default ObjectsList;
