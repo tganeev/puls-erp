@@ -1,0 +1,100 @@
+.objects-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.objects-main {
+  flex: 1;
+  margin-left: 260px;
+  padding: 24px 32px;
+  background: #F8F9FA;
+}
+
+.objects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.objects-header h1 {
+  font-size: 28px;
+  color: #0F2B4D;
+}
+
+.objects-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
+}
+
+.object-card {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.07);
+  transition: all 0.2s;
+}
+
+.object-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.object-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.object-status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.status-success { background: #d1fae5; color: #065f46; }
+.status-warning { background: #fed7aa; color: #92400e; }
+.status-danger { background: #fee2e2; color: #991b1b; }
+
+.object-address {
+  color: #6C757D;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.object-progress {
+  margin: 16px 0;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #FF6B00;
+  transition: width 0.3s;
+}
+
+.object-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 1024px) {
+  .objects-main {
+    margin-left: 72px;
+  }
+}
